@@ -87,6 +87,9 @@
 }
 
 .cardReceptor {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   perspective: 1000px;
   width: 30rem;
   height: 30rem;
