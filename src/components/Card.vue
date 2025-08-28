@@ -7,7 +7,6 @@
   const mouseY = ref(0);
   const focus = ref(0);
   const card = ref<HTMLElement | null>(null)
-  const round = ref<HTMLElement | null>(null)
 
   const mouseXPercent = ref(50);
   const mouseYPercent = ref(50);
