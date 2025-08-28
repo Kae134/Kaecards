@@ -35,6 +35,8 @@
     mouseXPercent.value = (relativeX.value / rect.width) * 100
     mouseYPercent.value = (relativeY.value / rect.height) * 100
 
+    console.log(mouseXPercent.value, mouseYPercent.value)
+
     const halfX = rect.width / 2  
     const halfY = rect.height / 2 
 
@@ -62,7 +64,7 @@
   }
 
   const handleTouchMove = (e: TouchEvent) => {
-    e.preventDefault() 
+    e.preventDefault()
     getPosition(e)
   }
 
@@ -104,7 +106,6 @@
         '--focus': focus,
         '--foil': `url(${Foil})`,
       }"></div>
-      <div class="round" ref="round"></div>
     </div>
   </div>
 </template>
@@ -137,6 +138,8 @@
   left: 0;
   width: 100%;
   height: 100%;
+  border-radius: 10px;
+  overflow: hidden;
   background-image: radial-gradient(
     farthest-corner circle at var(--mouseXPercent) var(--mouseYPercent), 
     rgb(255, 255, 255) 5%, 
@@ -164,7 +167,8 @@
   height: 20rem;
   background-blend-mode: color-dodge;
   background-size: 300% 400%;
-
+  border-radius: 10px;
+  overflow: hidden;
 
   background-image: repeating-linear-gradient(
     128deg,
@@ -205,31 +209,5 @@
   filter: brightness(calc((var(--focus)) * .2 + .4)) contrast(.8) saturate(1);
   mix-blend-mode: hard-light;
   transform: translateZ(1.2px);
-}
-
-.foil_uv {
-  position: absolute;
-  top: 0;
-  left: 0;
-  border-radius: 10px;
-  width: 14rem; 
-  height: 20rem;
-  opacity: 1;
-  z-index: 10;
-}
-
-.round {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 10rem;
-  height: 10rem;
-  border-radius: 50%;
-  background-color: rgb(213, 213, 213);
-  background-position: 0% var(--mouseYPercent), var(--mouseXPercent) var(--mouseYPercent);
-  filter: blur(20px);
-  opacity: .6;
-  z-index: 10;
-  mix-blend-mode: soft-light;
 }
 </style>
