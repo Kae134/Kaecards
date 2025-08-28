@@ -126,8 +126,8 @@
   align-items: center;
   justify-content: center;
   perspective: 1000px;
-  width: 30rem;
-  height: 30rem;
+  width: 25rem;
+  height: 25rem;
   margin: 2rem;
 }
 
