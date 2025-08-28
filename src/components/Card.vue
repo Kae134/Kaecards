@@ -17,13 +17,12 @@
 
   const transition = ref(false)
 
-  const getPosition = (e:any) => {
+  const getPosition = (e: any) => {
     if (!card.value) return
 
-    if (e.touches && e.touches.lenght > 0) {
+    if (e.touches && e.touches.length > 0) {
       relativeX.value = e.touches[0].clientX
       relativeY.value = e.touches[0].clientY
-      console.log("touch")
     } else {
       relativeX.value = e.clientX 
       relativeY.value = e.clientY
@@ -31,9 +30,7 @@
     
     const rect = card.value.getBoundingClientRect()
     relativeX.value -= rect.left
-    relativeX.value -= rect.top
-
-    
+    relativeY.value -= rect.top
     
     mouseXPercent.value = (relativeX.value / rect.width) * 100
     mouseYPercent.value = (relativeY.value / rect.height) * 100
@@ -41,7 +38,7 @@
     const halfX = rect.width / 2  
     const halfY = rect.height / 2 
 
-    focus.value = Math.min((Math.abs(halfX - relativeX.value) + Math.abs(halfY - relativeY.value) / (halfX + halfY)) / 100, 1)
+    focus.value = Math.min((Math.abs(halfX - relativeX.value) + Math.abs(halfY - relativeY.value)) / (halfX + halfY), 1)
   }
 
   const enter = () => {
@@ -58,25 +55,41 @@
     focus.value = 0
   }
 
+  const handleTouchStart = (e: TouchEvent) => {
+    e.preventDefault() 
+    enter()
+    getPosition(e)
+  }
+
+  const handleTouchMove = (e: TouchEvent) => {
+    e.preventDefault() 
+    getPosition(e)
+  }
+
+  const handleTouchEnd = (e: TouchEvent) => {
+    e.preventDefault()
+    leave()
+  }
+
   
 </script>
 
 <template>
   <div class="cardReceptor">
-
-    <div ref="card" :style="{ 
-      '--degreeY': (50 - mouseXPercent) * .45  + 'deg',
-      '--degreeX': ((50 - mouseYPercent) * -1) * .45 + 'deg',
-      '--transition' : transition ? 'all 0.5s ease' : '',
-    }" 
-    class="card" 
-    @mousemove="getPosition" 
-    @mouseenter="enter" 
-    @mouseleave="leave"
-
-    @touchstart="getPosition"
-    @touchmove="enter"
-    @touchend="leave"
+    <div 
+      ref="card" 
+      :style="{ 
+        '--degreeY': (50 - mouseXPercent) * .45  + 'deg',
+        '--degreeX': ((50 - mouseYPercent) * -1) * .45 + 'deg',
+        '--transition' : transition ? 'all 0.5s ease' : '',
+      }" 
+      class="card" 
+      @mousemove="getPosition" 
+      @mouseenter="enter" 
+      @mouseleave="leave"
+      @touchstart="handleTouchStart"
+      @touchmove="handleTouchMove"
+      @touchend="handleTouchEnd"
     >
       <img class="image" :src="Dracolos" alt="">
       <div class="glare" :style="{
@@ -94,7 +107,6 @@
       <div class="round" ref="round"></div>
     </div>
   </div>
-
 </template>
 
 <style>
