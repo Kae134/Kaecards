@@ -12,23 +12,36 @@
   const mouseXPercent = ref(50);
   const mouseYPercent = ref(50);
 
-  const transition = ref(false)
+  const relativeX = ref()
+  const relativeY = ref()
 
+  const transition = ref(false)
 
   const getPosition = (e:any) => {
     if (!card.value) return
+
+    if (e.touches && e.touches.lenght > 0) {
+      relativeX.value = e.touches[0].clientX
+      relativeY.value = e.touches[0].clientY
+      console.log("touch")
+    } else {
+      relativeX.value = e.clientX 
+      relativeY.value = e.clientY
+    }
+    
     const rect = card.value.getBoundingClientRect()
+    relativeX.value -= rect.left
+    relativeX.value -= rect.top
+
     
-    const relativeX = e.clientX - rect.left
-    const relativeY = e.clientY - rect.top
     
-    mouseXPercent.value = (relativeX / rect.width) * 100
-    mouseYPercent.value = (relativeY / rect.height) * 100
+    mouseXPercent.value = (relativeX.value / rect.width) * 100
+    mouseYPercent.value = (relativeY.value / rect.height) * 100
 
     const halfX = rect.width / 2  
     const halfY = rect.height / 2 
 
-    focus.value = Math.min((Math.abs(halfX - relativeX) + Math.abs(halfY - relativeY) / (halfX + halfY)) / 100, 1)
+    focus.value = Math.min((Math.abs(halfX - relativeX.value) + Math.abs(halfY - relativeY.value) / (halfX + halfY)) / 100, 1)
   }
 
   const enter = () => {
@@ -55,7 +68,16 @@
       '--degreeY': (50 - mouseXPercent) * .45  + 'deg',
       '--degreeX': ((50 - mouseYPercent) * -1) * .45 + 'deg',
       '--transition' : transition ? 'all 0.5s ease' : '',
-    }" class="card" @mousemove="getPosition" @mouseenter="enter" @mouseleave="leave">
+    }" 
+    class="card" 
+    @mousemove="getPosition" 
+    @mouseenter="enter" 
+    @mouseleave="leave"
+
+    @touchstart="getPosition"
+    @touchmove="enter"
+    @touchend="leave"
+    >
       <img class="image" :src="Dracolos" alt="">
       <div class="glare" :style="{
         '--mouseXPercent': mouseXPercent + '%',
