@@ -9,56 +9,40 @@
   const card = ref<HTMLElement | null>(null)
   const round = ref<HTMLElement | null>(null)
 
-  // Nouvelles variables pour les pourcentages de position
   const mouseXPercent = ref(50);
   const mouseYPercent = ref(50);
 
-  const cardMatrix = ref("1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1")
   const transition = ref(false)
 
 
-  const getPosition = (e) => {
+  const getPosition = (e:any) => {
     if (!card.value) return
-    const rect = e.currentTarget.getBoundingClientRect()
-    mouseX.value = e.clientX - rect.left
-    mouseY.value = e.clientY - rect.top
-
-    // Calculer les pourcentages pour le gradient
-    mouseXPercent.value = (mouseX.value / card.value.offsetWidth) * 100
-    mouseYPercent.value = (mouseY.value / card.value.offsetHeight) * 100
-
-    console.log(mouseX.value, mouseY.value, mouseXPercent.value, mouseYPercent.value)
-
-    round.value.style.top = mouseY.value - (round.value.offsetWidth / 2) + "px" 
-    round.value.style.left = mouseX.value - (round.value.offsetHeight / 2) + "px" 
-
-    const halfX = card.value.offsetWidth / 2
-    const halfY = card.value.offsetHeight / 2
-
-    focus.value = (Math.abs(mouseX.value - halfX) + Math.abs(mouseY.value - halfY)) / 220
-
-    console.log(focus.value)
-
-    const smallX = ((mouseX.value - halfX) / 200000)
-    const smallY = ((mouseY.value - halfY) / 200000)
+    const rect = card.value.getBoundingClientRect()
     
-    cardMatrix.value = `1,0,0,${-smallX}, 0,1,0,${-smallY}, 0,0,1,0, 0,0,0,1`
+    const relativeX = e.clientX - rect.left
+    const relativeY = e.clientY - rect.top
+    
+    mouseXPercent.value = (relativeX / rect.width) * 100
+    mouseYPercent.value = (relativeY / rect.height) * 100
+
+    const halfX = rect.width / 2  
+    const halfY = rect.height / 2 
+
+    focus.value = Math.min((Math.abs(halfX - relativeX) + Math.abs(halfY - relativeY) / (halfX + halfY)) / 100, 1)
   }
 
   const enter = () => {
     transition.value = false
   }
 
-  const leave = (e) => {
+  const leave = () => {
     transition.value = true
     if (!card.value) return
     mouseX.value = 0
     mouseY.value = 0
     mouseXPercent.value = 50
     mouseYPercent.value = 50
-
-    cardMatrix.value = "1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1"
-    console.log(cardMatrix.value)
+    focus.value = 0
   }
 
   
@@ -68,7 +52,8 @@
   <div class="cardReceptor">
 
     <div ref="card" :style="{ 
-      '--cardPosition': cardMatrix , 
+      '--degreeY': (50 - mouseXPercent) * .45  + 'deg',
+      '--degreeX': ((50 - mouseYPercent) * -1) * .45 + 'deg',
       '--transition' : transition ? 'all 0.5s ease' : '',
     }" class="card" @mousemove="getPosition" @mouseenter="enter" @mouseleave="leave">
       <img class="image" :src="Dracolos" alt="">
@@ -77,12 +62,10 @@
         '--mouseYPercent': mouseYPercent + '%',
       }"></div>
       <div class="foil" :style="{
-        '--scale': 5,
-        '--mouseY': mouseY/20 + 'px',
-        '--mouseX': mouseX/20 + 'px ',
+        '--scale': 10,
         '--mouseXPercent': mouseXPercent + '%',
         '--mouseYPercent': mouseYPercent + '%',
-        '--space': 5 + 'px',
+        '--space': 5 + '%',
         '--focus': focus,
         '--foil': `url(${Foil})`,
       }"></div>
@@ -99,37 +82,31 @@
   height: 20rem;
   border-radius: 10px;
   overflow: hidden;
-  z-index: 10;
-
-  transform: matrix3d(var(--cardPosition));
+  transform: rotateY(var(--degreeY)) rotateX(var(--degreeX));
   transition: var(--transition);
-
 }
 
 .cardReceptor {
   perspective: 1000px;
-  width: fit-content;
-  height: fit-content;
+  width: 30rem;
+  height: 30rem;
   margin: 2rem;
 }
 
 .glare {
+  transform: translateZ(1.41px);
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  opacity: .6;
   background-image: radial-gradient(
-    farthest-corner circle at var(--mouseXPercent) var(--mouseYPercent),
-    hsla(0, 0%, 100%, 0.8) 10%,
-    hsla(0, 0%, 100%, 0.65) 20%,
-    hsla(0, 0%, 0%, 0.5) 90%
+    farthest-corner circle at var(--mouseXPercent) var(--mouseYPercent), 
+    rgb(255, 255, 255) 5%, 
+    rgba(255, 255, 255, 0.6) 40%, 
+    rgb(79, 99, 99) 120% 
   );
-  mix-blend-mode: overlay;
-  z-index: 10;
-  transform: translateZ(1.41px);
-  overflow: hidden;
+  mix-blend-mode: soft-light;
 }
 
 .image {
@@ -139,7 +116,6 @@
   width: 14rem;
   height: 20rem;
   object-fit: cover;
-  z-index: 1;
 }
 
 .foil {
@@ -147,16 +123,14 @@
   top: 0;
   left: 0;
   border-radius: 10px;
-  width: 15rem;
-  height: 15rem;
-  scale: var(--scale);
-
-  opacity: .3;
+  width: 14rem;
+  height: 20rem;
   background-blend-mode: color-dodge;
-  background: transparent;
+  background-size: 300% 400%;
 
-  background: repeating-linear-gradient(
-    133deg,
+
+  background-image: repeating-linear-gradient(
+    128deg,
     rgba(255, 0, 0, 0.75) calc(var(--space) * 1), 
     rgba(255, 225, 0, 0.75) calc(var(--space) * 2), 
     rgba(12, 255, 69, 0.75) calc(var(--space) * 3), 
@@ -166,9 +140,9 @@
     rgba(255, 0, 0, 0.75) calc(var(--space) * 7)
   );
 
-  background-size: 200% 200%;
-  background-position: var(--mouseX) var(--mouseY);
-  filter: brightness(var(--focus));
+  mix-blend-mode: color-dodge;
+  background-position: var(--mouseXPercent) var(--mouseYPercent);
+  filter: brightness(calc(var(--focus) * .3 + .4)) contrast(2.3) saturate(1);;
   z-index: 3;
   transform: translateZ(1px);
 }
@@ -184,14 +158,14 @@
   background-image: radial-gradient(
     farthest-corner ellipse 
     at var(--mouseXPercent) var(--mouseYPercent), 
-    hsl(0, 0%, 100%) 5%, 
-      hsla(300, 100%, 11%, 0.6) 40%, 
-      hsl(0, 0%, 22%) 120% 
+    rgb(255, 255, 255) 10%, 
+    rgba(56, 0, 56, 0.6) 35%, 
+    rgb(0, 0, 0) 60%
   );
 
   background-position: center center;
-  background-size: 300% 300%;
-  filter: brightness(calc((var(--focus)))) contrast(.85) saturate(1.1);
+  background-size: 400% 500%;
+  filter: brightness(calc((var(--focus)) * .2 + .4)) contrast(.8) saturate(1);
   mix-blend-mode: hard-light;
   transform: translateZ(1.2px);
 }
@@ -201,7 +175,7 @@
   top: 0;
   left: 0;
   border-radius: 10px;
-  width: 14rem;
+  width: 14rem; 
   height: 20rem;
   opacity: 1;
   z-index: 10;
@@ -211,11 +185,11 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 25rem;
-  height: 25rem;
+  width: 10rem;
+  height: 10rem;
   border-radius: 50%;
   background-color: rgb(213, 213, 213);
-  background-position: 0% var(--mouseY), var(--mouseX) var(--mouseY);
+  background-position: 0% var(--mouseYPercent), var(--mouseXPercent) var(--mouseYPercent);
   filter: blur(20px);
   opacity: .6;
   z-index: 10;
